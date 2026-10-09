@@ -35,6 +35,9 @@ class Order extends Model
                     ->where('assigned_at', '<=', now()->subMinutes(30));
     }
     
+    public function scopeStatusAssigned(Builder $query){
+        return $query->where('status', OrderStatus::ASSIGNED->value);
+    }
 
     // علاقة العميل
     public function customer(): BelongsTo

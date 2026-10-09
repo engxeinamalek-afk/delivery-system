@@ -37,4 +37,14 @@ class StoreController extends Controller
             'data' => $store,
         ]);
     }
+
+    // دالة جلب جميع المتاجر
+    public function index()
+    {
+        $stores = Store::withoutGlobalScopes()->get();
+        return response()->json([
+            'message' => 'Stores retrieved successfully',
+            'data' => $stores,
+        ]); 
+    }
 }

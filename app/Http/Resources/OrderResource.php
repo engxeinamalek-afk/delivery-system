@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Enums\OrderStatus;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -22,12 +23,12 @@ class OrderResource extends JsonResource
             
             'store_name' => $this->store->name,
             
-            'driver_name' => $this->when($this->status !== 'pending',$this->driver?->name),
+            'driver_name' => $this->when($this->status !== OrderStatus::PENDING->value ,$this->driver?->name),
             
             'items_count' => $this->order_items_count,
 
-            'assigned_date' => $this->when($this->status === 'assigned', $this->assigned_at),
-            'delivery_date' => $this->when($this->status === 'delivered', $this->delivered_at),
+            'assigned_date' => $this->when($this->status === OrderStatus::ASSIGNED->value , $this->assigned_at),
+            'delivery_date' => $this->when($this->status === OrderStatus::DELIVERED->value , $this->delivered_at),
             'created_at' => $this->created_at,
         ];
     }

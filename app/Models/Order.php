@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\OrderStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -30,9 +31,11 @@ class Order extends Model
     // الطلبات المتأخرة
     public function scopeDelayedAssignment(Builder $query): Builder
     {
-        return $query->where('status', 'assigned')  
+        return $query->where('status', OrderStatus::ASSIGNED->value)  
                     ->where('assigned_at', '<=', now()->subMinutes(30));
     }
+    
+
     // علاقة العميل
     public function customer(): BelongsTo
     {

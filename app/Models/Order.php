@@ -3,7 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 class Order extends Model
 {
     protected $fillable = ['customer_id',
@@ -11,5 +13,54 @@ class Order extends Model
                             'status',
                             'driver_id',
                             'assigned_at',
-                            'delivered_at'];      
+                            'delivered_at'];     
+
+    // لطلبات اليوم
+    public function scopeToday(Builder $query): Builder
+    {
+        return $query->whereDate('created_at', today());
+    }
+
+    // طلبات سائق
+    public function scopeForDriver(Builder $query, int $driverId): Builder
+    {
+        return $query->where('driver_id', $driverId);
+    }
+
+    // الطلبات المتأخرة
+    public function scopeDelayedAssignment(Builder $query): Builder
+    {
+        return $query->where('status', 'assigned')  
+                    ->where('assigned_at', '<=', now()->subMinutes(30));
+    }
+    // علاقة العميل
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(User::class , 'customer_id' , 'id');
+    }
+
+    // علاقة السائق
+    public function driver(): BelongsTo
+    {
+        return $this->belongsTo(User::class , 'driver_id' , 'id');
+    }
+
+    // علاقة عناصر الطلب
+    public function orderItems() : HasMany
+    {
+        return $this->hasMany(OrderItem::class);
+    }
+
+    // علاقة المتجر
+    public function store(): BelongsTo
+    {
+        return $this->belongsTo(Store::class); 
+    }
+
+    // سكوب جلب اسم العميل واسم السائق واسم المتجر وعدد العناصر
+    public function scopeWithDetails(Builder $query): Builder
+    {
+        return $query->with(['customer:id,name', 'driver:id,name', 'store:id,name'])
+                     ->withCount('orderItems');
+    }
 }

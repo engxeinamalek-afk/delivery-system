@@ -5,16 +5,15 @@ use App\Models\User;
 use App\Exceptions\InvalidDriverException;
 class AdminOrderService
 {
-    public function getDriverOrders(int $driverId){
-        $this->validateDriver($driverId);
-        $orders = Order::assignedToday()->forDriver($driverId)->WithDetails()->get();
+    public function getDriverOrders(User $driver){
+        $this->validateDriver($driver);
+        $orders = $driver->orders()->assignedToday()->WithDetails()->get();
         return $orders;
     }
-    private function validateDriver(int $driverId): void
+    private function validateDriver(User $driver): void
     {
-        $driver = User::findOrFail($driverId);
         if ($driver->role !== 'driver') {
-            throw new InvalidDriverException('The specified driver isn\'t a driver.');
+            throw new InvalidDriverException('This user isn\'t a driver');
         }
     }
 

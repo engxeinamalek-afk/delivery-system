@@ -12,8 +12,8 @@ class OrderController extends Controller
     public function __construct(private DriverOrderService $driverOrderService){}
 
     public function index(){
-        $driverId= Auth::user()->id;
-        $orders = Order::assignedToday()->forDriver($driverId)->statusAssigned()->WithDetails()->get();
+        $driver= Auth::user();
+        $orders = $driver->orders()->assignedToday()->statusAssigned()->WithDetails()->get();
         return response()->json([
             'message' => 'Driver\'s orders retrieved successfully',
             'data' => OrderResource::collection($orders),

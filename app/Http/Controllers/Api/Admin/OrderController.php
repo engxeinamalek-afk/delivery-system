@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Order;
 use App\Services\AdminOrderService;
 use App\Http\Resources\OrderResource;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 class OrderController extends Controller
 {
@@ -21,8 +22,8 @@ class OrderController extends Controller
         ],200);
     }
 
-    public function getDriverOrders(int $driverId){
-        $orders = $this->service->getDriverOrders($driverId);
+    public function getDriverOrders(User $driver){
+        $orders = $this->service->getDriverOrders($driver);
         return response()->json([
             'message' => 'Driver\'s orders retrieved successfully',
             'data' => OrderResource::collection($orders),

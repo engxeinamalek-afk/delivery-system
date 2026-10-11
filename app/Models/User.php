@@ -78,8 +78,8 @@ class User extends Authenticatable
     {
         $today = Carbon::today()->toDateTimeString();
 
-        return $query->withCount(['orders as total_trips_today' => function ($q) {
-                        $q->where('assigned_at', '>=', Carbon::today());
+        return $query->withCount(['orders as total_trips_today' => function ($q) use ($today) {
+                        $q->where('assigned_at', '>=', $today);
                     }]);
     }
 

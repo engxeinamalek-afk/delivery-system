@@ -41,7 +41,7 @@ class StoreController extends Controller
     // دالة جلب جميع المتاجر
     public function index()
     {
-        $stores = Store::withoutGlobalScopes()->get();
+        $stores = Store::select('id','name','is_active')->withoutGlobalScopes()->get();
         return response()->json([
             'message' => 'Stores retrieved successfully',
             'data' => $stores,

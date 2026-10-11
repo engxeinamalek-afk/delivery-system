@@ -20,27 +20,24 @@ class OrderService
     public function createOrder(array $data): Order
     {
         $this->isActiveStore($data['store_id']);
-
-        return DB::transaction(function () use ($data) {
             
-            $order = Order::create([
-                'customer_id' => $data['customer_id'],
-                'store_id' => $data['store_id'],
-                'status' => OrderStatus::PENDING->value,
+        $order = Order::create([
+            'customer_id' => $data['customer_id'],
+            'store_id' => $data['store_id'],
+            'status' => OrderStatus::PENDING->value,
+        ]);
+
+        foreach ($data['items'] as $itemData) {
+            $itemData['order_id'] = $order->id;
+            
+            OrderItem::create([
+                'item_name' => $itemData['item_name'],
+                'details'   => $itemData['details'] ?? null,
+                'order_id'  => $itemData['order_id']
             ]);
+        }
 
-            foreach ($data['items'] as $itemData) {
-                $itemData['order_id'] = $order->id;
-                
-                OrderItem::create([
-                    'item_name' => $itemData['item_name'],
-                    'details'   => $itemData['details'] ?? null,
-                    'order_id'  => $itemData['order_id']
-                ]);
-            }
-
-            return $order;
-        });
+        return $order;
     }
 
     private function isActiveStore(int $storeId){

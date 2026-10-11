@@ -32,13 +32,13 @@ class DriverOrderService{
 
     private function validateOrder(int $driverId, Order $order){
         if($order->driver_id !== $driverId ){
-            throw new InvalidOrderException('Invalid order for the specified driver.');
+            throw new InvalidOrderException('Invalid order for the specified driver.',403);
         }
     }
 
     private function validateOrderStatus(Order $order, OrderStatus $validStatus){
         if($order->status !== $validStatus->value){
-            throw new InvalidOrderException("This order wasn't {$validStatus->value}");
+            throw new InvalidOrderException("This order wasn't {$validStatus->value}",422);
         }
     }
 }

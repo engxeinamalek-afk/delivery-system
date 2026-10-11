@@ -25,7 +25,7 @@ class LongestIdleDriverService extends BaseAssignDriverService{
     protected function validateOrder(Order $order): void
     {
         if (in_array($order->status, [OrderStatus::PICKED_UP->value, OrderStatus::DELIVERED->value])) {
-            throw new InvalidOrderException("The order is already {$order->status}");
+            throw new InvalidOrderException("The order is already {$order->status}",422);
         }
     }
  

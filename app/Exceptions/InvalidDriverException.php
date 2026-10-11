@@ -3,5 +3,5 @@ namespace App\Exceptions;
 
 class InvalidDriverException extends BaseException
 {
-    protected int $statusCode = 403;
+    protected int $statusCode = 422;
 }

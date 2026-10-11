@@ -4,5 +4,5 @@ namespace App\Exceptions;
 
 class StoreInactiveException extends BaseException
 {
-    protected int $statusCode = 404;
+    protected int $statusCode = 422; // المتجر موجود ولكن غير نشط
 }

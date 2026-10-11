@@ -20,7 +20,7 @@ class LeastBusyDriverService extends BaseAssignDriverService{
     protected function validateOrder(Order $order): void
     {
         if ($order->status !== 'pending') {
-            throw new InvalidOrderException('This Order isn\'t pending');
+            throw new InvalidOrderException('This Order isn\'t pending',422);
         }
     }
 }

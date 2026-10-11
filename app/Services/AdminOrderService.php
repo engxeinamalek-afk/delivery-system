@@ -7,7 +7,7 @@ class AdminOrderService
 {
     public function getDriverOrders(int $driverId){
         $this->validateDriver($driverId);
-        $orders = Order::today()->forDriver($driverId)->WithDetails()->get();
+        $orders = Order::assignedToday()->forDriver($driverId)->WithDetails()->get();
         return $orders;
     }
     private function validateDriver(int $driverId): void

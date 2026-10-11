@@ -14,7 +14,7 @@ class OrderController extends Controller
 
     public function getTodayOrders()
     {
-        $orders = Order::today()->WithDetails()->get();
+        $orders = Order::createdToday()->WithDetails()->get();
         return response()->json([
             'message' => 'Today\'s orders retrieved successfully',
             'data' => OrderResource::collection($orders),

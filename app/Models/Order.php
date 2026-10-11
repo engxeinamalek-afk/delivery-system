@@ -17,10 +17,16 @@ class Order extends Model
                             'delivered_at'];     
 
     // لطلبات اليوم
-    public function scopeToday(Builder $query): Builder
+    public function scopeCreatedToday(Builder $query): Builder
     {
         return $query->whereDate('created_at', today());
     }
+
+    public function scopeAssignedToday(Builder $query): Builder
+    {
+        return $query->whereDate('assigned_at', today());
+    }
+
 
     // طلبات سائق
     public function scopeForDriver(Builder $query, int $driverId): Builder

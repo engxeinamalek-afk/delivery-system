@@ -13,7 +13,7 @@ class OrderController extends Controller
 
     public function index(){
         $driverId= Auth::user()->id;
-        $orders = Order::today()->forDriver($driverId)->statusAssigned()->WithDetails()->get();
+        $orders = Order::assignedToday()->forDriver($driverId)->statusAssigned()->WithDetails()->get();
         return response()->json([
             'message' => 'Driver\'s orders retrieved successfully',
             'data' => OrderResource::collection($orders),

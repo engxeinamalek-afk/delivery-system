@@ -19,11 +19,13 @@ class OrderResource extends JsonResource
             'id' => $this->id,
             'status' => $this->status,
             
-            'customer_name' => $this->customer?->name,
+            'customer_name' => $this->relationLoaded('customer') ? $this->customer?->name : null,
+            'store_name'    => $this->relationLoaded('store') ? $this->store?->name : null,
+
             
-            'store_name' => $this->store->name,
-            
-            'driver_name' => $this->when($this->status !== OrderStatus::PENDING->value ,$this->driver?->name),
+            'driver_name' => $this->when($this->status !== OrderStatus::PENDING->value && $this->relationLoaded('driver'),
+                                        fn() => $this->driver?->name),
+
             
             'items_count' => $this->order_items_count,
 

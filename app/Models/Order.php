@@ -70,9 +70,14 @@ class Order extends Model
     }
 
     // سكوب جلب اسم العميل واسم السائق واسم المتجر وعدد العناصر
-    public function scopeWithDetails(Builder $query): Builder
-    {
-        return $query->with(['customer:id,name', 'driver:id,name', 'store:id,name'])
-                     ->withCount('orderItems');
+    public function scopeWithDetails(Builder $query): Builder{
+        return $query->with([
+            'customer:id,name', 
+            'driver:id,name', 
+            'store' => function ($storeQuery) {
+                // تجاهل الـ Global Scope لجلب المتاجر حتى لو كانت مغلقة
+                $storeQuery->withoutGlobalScopes()->select('id', 'name');
+            }
+        ])->withCount('orderItems');
     }
 }

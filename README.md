@@ -1,59 +1,105 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Delivery System
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Simple Laravel Delivery System built to manage orders and deliveries easily. The project includes a secure login system with three different roles:
 
-## About Laravel
+*   **Admin Dashboard:**
+    *   **Store Management:** Seamlessly add new stores and manage their activation status (Enable/Disable).
+    *   **Live Order Monitoring:** Keep track of daily orders, delayed shipments, and specific driver logs.
+    *   **Smart Dispatch System:** Manually assign drivers to urgent orders based on real-time availability and the longest waiting time metric.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+*   **Customer Features:**
+    *   **Store Exploration:** Browse all available and active stores within the platform.
+    *   **Order Placement:** Create and submit delivery orders effortlessly.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+*   **Driver Features:**
+    *   **Assigned Orders:** View all orders assigned directly to them.
+    *   **Status Management:** Update the real-time order lifecycle status to either `picked_up` or `delivered`.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Architecture: Contextual Binding
 
-## Learning Laravel
+The system uses **Laravel's Contextual Binding** to handle driver assignments.The application automatically switches between two strategies implementing the same interface:
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+* **Automated Assignment:** 
+  Triggered automatically when a customer creates an order. It assigns the driver with the `fewest orders today` to balance the workload fairly.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+* **Manual Assignment (by admin):** 
+  Triggered manually from the admin panel. It selects the `available` driver with the `longest idle time` since their last delivered order.
 
-## Laravel Sponsors
+## Data Filtering: Global Scope
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+The system uses a `Global Scope` to control store visibility:
 
-### Premium Partners
+* **Customers:** Inactive stores are automatically hidden from their view.
+* **Admins:** Can see all stores (including disabled ones) using `withoutGlobalScope`.
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+## Local Scopes:
+Used across models to wrap common query filters, preventing code duplication.
+## No Lazy Loading: 
+Disallowed globally to prevent the **N+1 query problem**. Instead, **Eager Loading** (`with`) is utilized to fetch relationships efficiently in a single query, drastically reducing database load.
 
-## Contributing
+## Database Optimization: Indexing Strategy
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+A composite index was implemented on the `orders` table combining: `driver_id`, `assigned_at`, and `status`.
 
-## Code of Conduct
+### Why this index?
+This specific composite index speeds up the three most frequent daily database queries in the system:
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+* **Automated Dispatching:** Fast-tracks checking and filtering orders by `driver_id` and `assigned_at` to calculate driver workloads.
+* **Driver Order Feeds:** Optimizes the driver's query when fetching their own assigned orders filtered by `driver_id`, `assigned_at`, and delivery `status`.
+* **Admin Monitoring:** Accelerates dashboard queries when the admin reviews a specific driver's trip history filtered by `driver_id` and `assigned_at`.
 
-## Security Vulnerabilities
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
 
-## License
+## API Endpoints Documentations
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+All routes are protected by **Sanctum Authentication** and restricted to specific user roles.
+
+### Admin Endpoints (`/admin`)
+
+* **`POST /admin/stores`** - Add a new merchant store.
+    `body:` 
+```
+{"name": "zeze store"}
+```
+* **`GET /admin/stores`** - Fetch all stores (including disabled ones).
+    `body: null`
+* **`PATCH /admin/stores/{store}/status`** - Toggle store activation status (Enable/Disable).
+    `body:`
+```
+{"is_active": true}
+```
+* **`GET /admin/driver/{driver}/orders`** - Retrieve today orders assigned to a specific driver.
+    `body: null`
+* **`GET /admin/orders/delayed`** - Fetch all delayed orders.
+    `body: null`
+* **`GET /admin/orders/today`** - Monitor today's orders.
+    `body: null`
+* **`PATCH /admin/orders/{order}/driver`** - Manually assign a driver to an urgent order.
+    `body: null`
+
+### Customer Endpoints (`/customer`)
+
+* **`GET /customer/stores`** - Browse active available stores only.
+    `body: null`
+* **`POST /customer/orders`** - Create a new delivery order.
+    `body:` 
+```
+{"store_id":1
+    items:[{
+        "item_name": "Matte Liquid Lipstick",
+        "details": "Shade 04 - Classic Red"
+    },{
+        "item_name": "Full Coverage Foundation",
+        "details": "Volume: 30ml, Skin Tone: Ivory"
+    }]}
+```
+
+### Driver Endpoints (`/driver`)
+
+* **`GET /driver/orders`** - View today orders assigned to the logged-in driver.
+    `body: null`
+* **`PATCH /driver/orders/{order}/take`** - Update order status to `pick_up`.
+    `body: null`
+* **`PATCH /driver/orders/{order}/deliver`** - Update order status to `delivered`.
+    `body: null`
+
